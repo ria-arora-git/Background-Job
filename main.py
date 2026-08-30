@@ -75,4 +75,19 @@ async def make_report(ctx: inngest.Context) -> None:
         reports[report_id]["status"] = "failed"
         raise
 
-inngest.fast_api.serve(app, inngest_client, [say_hello, make_report])
+@inngest_client.create_function(
+    fn_id="heartbeat",
+    trigger=inngest.TriggerCron(cron="* * * * *"), 
+)
+async def heartbeat(ctx: inngest.Context) -> None:
+    counts = {"pending": 0, "done": 0, "failed": 0}
+    for report in reports.values():
+        status = report.get("status", "pending")
+        counts[status] = counts.get(status, 0) + 1
+
+    ctx.logger.info(
+        f"Heartbeat: {counts['pending']} pending, "
+        f"{counts['done']} done, {counts['failed']} failed"
+    )
+
+inngest.fast_api.serve(app, inngest_client, [say_hello, make_report, heartbeat])
