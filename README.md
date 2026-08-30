@@ -1,0 +1,1 @@
+A bad topic gets a 400 instead of a retry because retries are meant for temporary problems that might work if tried again, while missing or invalid input will not fix itself by retrying. It is better to reject it immediately than waste three attempts on something that cannot succeed.
